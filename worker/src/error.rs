@@ -1,4 +1,5 @@
 use wasm_bindgen::{JsCast, JsValue};
+use worker_sys::console_debug;
 
 /// All possible Error variants that might be encountered while working with a Worker.
 #[derive(Debug)]
@@ -63,8 +64,10 @@ impl std::error::Error for Error {}
 // Not sure if the changes I've made here are good or bad...
 impl From<JsValue> for Error {
     fn from(v: JsValue) -> Self {
+        console_debug!("DEBUG: Error@v: v@--->{:?}<---@v", v);
         match v.as_string().or_else(|| {
             v.dyn_ref::<js_sys::Error>().map(|e| {
+                console_debug!("DEBUG: Error@dyn: dyn@--->{:?}<---@dyn", e);
                 format!(
                     "Error: {} - Cause: {}",
                     e.to_string(),

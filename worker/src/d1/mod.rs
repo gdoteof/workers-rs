@@ -122,6 +122,7 @@ impl From<D1DatabaseSys> for Database {
 }
 
 // A D1 prepared query statement.
+#[derive(Debug)]
 pub struct PreparedStatement(D1PreparedStatementSys);
 
 impl PreparedStatement {
@@ -167,8 +168,21 @@ impl PreparedStatement {
 
     /// Executes a query against the database and returns all rows and metadata.
     pub async fn all(&self) -> Result<D1Result> {
-        let result = JsFuture::from(self.0.all()).await?;
-        Ok(D1Result(result.into()))
+        let debug = self.clone();
+        worker_sys::console_log!("DEBUG: {:?}", debug.clone());
+        worker_sys::console_log!("DEBUG.0: {:?}", debug.clone().0);
+        worker_sys::console_log!("DEBUG.0.all: {:?}", debug.clone().0.all());
+        let result = JsFuture::from(self.0.all()).await;
+        match result {
+            Ok(result) => {
+                worker_sys::console_log!("DEBUG.result: {:?}", result.clone());
+                return Ok(D1Result(result.into()))
+            },
+            Err(err) => {
+                worker_sys::console_log!("DEBUG.err: {:?}", err.clone());
+                return Err(err.into())
+            }
+        }
     }
 
     /// Executes a query against the database and returns a `Vec` of rows instead of objects.
@@ -194,6 +208,7 @@ impl From<D1PreparedStatementSys> for PreparedStatement {
 }
 
 // The result of a D1 query execution.
+#[derive(Debug)]
 pub struct D1Result(D1ResultSys);
 
 impl D1Result {
